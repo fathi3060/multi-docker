@@ -1,0 +1,24 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t fathi3060/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true fathi3060/react-test npm test
+
+after_success:
+  - docker build -t fathi3060/multi-client ./client
+  - docker build -t fathi3060/multi-nginx ./nginx
+  - docker build -t fathi3060/multi-server ./server
+  - docker build -t fathi3060/multi-worker ./worker
+  
+  # connection au docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # prendre ces images et les pousser vers Docker Hub
+  - docker push fathi3060/multi-client
+  - docker push fathi3060/multi-nginx
+  - docker push fathi3060/multi-server
+  - docker push fathi3060/multi-worker
